@@ -1,6 +1,8 @@
 const socket = io(); // Initialize socket.io
 const chatForm  = document.getElementById('chat-form'); // Get the chat form element
 const chatMessages = document.querySelector('.chat-messages'); // Get the chat messages container
+const roomName = document.getElementById('room-name');
+const userList = document.getElementById('users');
 
 
 const{username,room} = Qs.parse(window.location.search,{ignoreQueryPrefix:true});
@@ -17,6 +19,12 @@ socket.on('message', (message) => {
   outputMessage(message); // Output the message to the chat
   chatMessages.scrollTop = chatMessages.scrollHeight; // Scroll to the bottom of the chat
 });
+
+socket.on('roomUsers',({room,users})=>{
+  outputRoomName(room);
+  outputUsers(users);
+  console.log(users)
+})
 
 // Listen for form submission
 chatForm.addEventListener('submit',(e)=>{
@@ -36,4 +44,14 @@ function outputMessage(message){
     ${message.text}
   </p>`; // Set the inner HTML of the div
   chatMessages.appendChild(div); // Append the div to the chat messages container
+}
+
+function outputRoomName(room){
+  roomName.innerText = room;
+}
+
+function outputUsers(users){
+   userList.innerHTML = `
+    ${users.map(user => `<li>${user.username}</li>`).join('')}
+   `;
 }
