@@ -32,7 +32,18 @@ io.on('connection', (socket) => {
       users: getRoomUsers(user.room)
     })
 
+
+    socket.on('typing', () => {
+      socket.broadcast.to(user.room).emit(
+        'typing', formatMessage(user.username, `is typing...`));
+  });
+
+  socket.on('stop typing', () => {
+      socket.broadcast.to(user.room).emit(
+        'stop typing', formatMessage(user.username, `stopped typing`));
+  });
   })
+  
 
   
 

@@ -3,6 +3,8 @@ const chatForm  = document.getElementById('chat-form'); // Get the chat form ele
 const chatMessages = document.querySelector('.chat-messages'); // Get the chat messages container
 const roomName = document.getElementById('room-name');
 const userList = document.getElementById('users');
+const message =document.querySelector('.message'); // detect the input 
+const notification = document.querySelector('.notification');
 
 
 const{username,room} = Qs.parse(window.location.search,{ignoreQueryPrefix:true});
@@ -33,6 +35,23 @@ chatForm.addEventListener('submit',(e)=>{
   socket.emit('chatMessage', msg); // Send the message to the server
   e.target.elements.msg.value = ''; // Clear the input field
   e.target.elements.msg.focus(); // Refocus on the input field
+});
+
+let typingTimeout;
+message.addEventListener('input', () => {
+    clearTimeout(typingTimeout);
+    socket.emit('typing');
+    typingTimeout = setTimeout(() => {
+        socket.emit('stop typing');
+    }, 1000);
+});
+
+socket.on('typing', (data) => {
+  notification.textContent = `${data.username} is typing...`;
+});
+
+socket.on('stop typing', () => {
+  notification.textContent = '';
 });
 
 // Output message to DOM
