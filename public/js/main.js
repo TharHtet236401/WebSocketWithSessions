@@ -5,6 +5,7 @@ const roomName = document.getElementById('room-name');
 const userList = document.getElementById('users');
 const message =document.querySelector('.message'); // detect the input 
 const notification = document.querySelector('.notification');
+const image =document.getElementById('img');
 
 
 const{username,room} = Qs.parse(window.location.search,{ignoreQueryPrefix:true});
@@ -28,13 +29,29 @@ socket.on('roomUsers',({room,users})=>{
   console.log(users)
 })
 
-// Listen for form submission
-chatForm.addEventListener('submit',(e)=>{
+// Listen for form submission for messages
+chatForm.addEventListener('submit', (e) => {
   e.preventDefault(); // Prevent the form from submitting the default way
-  const msg = e.target.elements.msg.value; // Get the message text
+  const msg = e.target.elements.msg.value;
+  console.log(msg); // Get the message text
   socket.emit('chatMessage', msg); // Send the message to the server
   e.target.elements.msg.value = ''; // Clear the input field
   e.target.elements.msg.focus(); // Refocus on the input field
+});
+
+// Listen for image upload
+image.addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const imgData = event.target.result;
+      console.log(imgData);
+      socket.emit('chatImage', imgData); 
+      image.value = '';// Send the image data to the server
+    };
+    reader.readAsDataURL(file);
+  }
 });
 
 let typingTimeout;
@@ -52,6 +69,17 @@ socket.on('typing', (data) => {
 
 socket.on('stop typing', () => {
   notification.textContent = '';
+});
+
+// Listen for imageMessage event
+socket.on('imageMessage', (data) => {
+  console.log(data.imgData);
+  const div = document.createElement('div');
+  div.classList.add('message');
+  div.innerHTML = `<p class="meta">${data.username} <span>${data.time}</span></p>
+                   <p class="text"><img src="${data.imgData}" alt="Image" style="max-width: 100%;"></p>`;
+  chatMessages.appendChild(div);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
 });
 
 // Output message to DOM

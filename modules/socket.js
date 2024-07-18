@@ -89,6 +89,29 @@ function initializeSocket(server) {
       }
     });
 
+    // Listen for chatImage event
+    socket.on('chatImage', async (imgData) => {
+      const user = getCurrentUser(socket.id);
+      const newMessage = new Message({
+        user: user.username,
+        message: '', // No text message
+        image: imgData, // Save image data
+        video: null,
+        room: user.room,
+      });
+
+      try {
+        await newMessage.save();
+        io.to(user.room).emit('imageMessage', {
+          username: user.username,
+          imgData: imgData,
+          time: new Date().toLocaleTimeString(),
+        });
+      } catch (err) {
+        console.error('Error saving image to database:', err);
+      }
+    });
+
     socket.on('disconnect', async () => {
       const user = userLeave(socket.id);
 
